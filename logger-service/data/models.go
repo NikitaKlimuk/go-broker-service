@@ -43,7 +43,7 @@ func (l *LogEntry) Insert(entry LogEntry) error {
 		UpdatedAt: time.Now(),
 	})
 	if err != nil {
-		log.Println("Error inserting log entry: ", err)
+		log.Println("Error inserting into logs:", err)
 		return err
 	}
 
@@ -57,23 +57,23 @@ func (l *LogEntry) All() ([]*LogEntry, error) {
 	collection := client.Database("logs").Collection("logs")
 
 	opts := options.Find()
-	opts.SetSort((bson.D{{Key: "created_at", Value: -1}}))
+	opts.SetSort(bson.D{{Key: "created_at", Value: -1}})
 
 	cursor, err := collection.Find(context.TODO(), bson.D{}, opts)
 	if err != nil {
-		log.Println("Error finding log entries: ", err)
+		log.Println("Finding all docs error:", err)
 		return nil, err
 	}
-
 	defer cursor.Close(ctx)
 
 	var logs []*LogEntry
+
 	for cursor.Next(ctx) {
 		var item LogEntry
 
 		err := cursor.Decode(&item)
 		if err != nil {
-			log.Println("Error decoding log entry: ", err)
+			log.Print("Error decoding log into slice:", err)
 			return nil, err
 		} else {
 			logs = append(logs, &item)
@@ -91,14 +91,12 @@ func (l *LogEntry) GetOne(id string) (*LogEntry, error) {
 
 	docID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		log.Println("Error converting id to object id: ", err)
 		return nil, err
 	}
 
 	var entry LogEntry
-	err = collection.FindOne(ctx, bson.D{{Key: "_id", Value: docID}}).Decode(&entry)
+	err = collection.FindOne(ctx, bson.M{"_id": docID}).Decode(&entry)
 	if err != nil {
-		log.Println("Error finding log entry: ", err)
 		return nil, err
 	}
 
@@ -111,9 +109,7 @@ func (l *LogEntry) DropCollection() error {
 
 	collection := client.Database("logs").Collection("logs")
 
-	err := collection.Drop(ctx)
-	if err != nil {
-		log.Println("Error dropping collection: ", err)
+	if err := collection.Drop(ctx); err != nil {
 		return err
 	}
 
@@ -128,7 +124,6 @@ func (l *LogEntry) Update() (*mongo.UpdateResult, error) {
 
 	docID, err := primitive.ObjectIDFromHex(l.ID)
 	if err != nil {
-		log.Println("Error converting id to object id: ", err)
 		return nil, err
 	}
 
@@ -139,16 +134,14 @@ func (l *LogEntry) Update() (*mongo.UpdateResult, error) {
 			{Key: "$set", Value: bson.D{
 				{Key: "name", Value: l.Name},
 				{Key: "data", Value: l.Data},
-				{Key: `updated_at`, Value: time.Now()},
+				{Key: "updated_at", Value: time.Now()},
 			}},
 		},
 	)
 
 	if err != nil {
-		log.Println("Error updating log entry: ", err)
 		return nil, err
 	}
 
 	return result, nil
-
 }

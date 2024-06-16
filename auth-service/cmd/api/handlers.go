@@ -10,25 +10,25 @@ import (
 
 func (app *Config) Authenticate(w http.ResponseWriter, r *http.Request) {
 
-	var requestPayload struct {
+	var RequestPayload struct {
 		Email    string `json:"email"`
 		Password string `json:"password"`
 	}
 
-	err := app.readJSON(w, r, &requestPayload)
+	err := app.readJSON(w, r, &RequestPayload)
 	if err != nil {
 		app.errorJSON(w, err, http.StatusBadRequest)
 		return
 	}
 
 	// validate the user credentials
-	user, err := app.Models.User.GetByEmail(requestPayload.Email)
+	user, err := app.Models.User.GetByEmail(RequestPayload.Email)
 	if err != nil {
 		app.errorJSON(w, errors.New("invalid credentials"), http.StatusUnauthorized)
 		return
 	}
 
-	valid, err := user.PasswordMatches(requestPayload.Password)
+	valid, err := user.PasswordMatches(RequestPayload.Password)
 	if err != nil || !valid {
 		app.errorJSON(w, errors.New("invalid credentials"), http.StatusUnauthorized)
 		return
@@ -42,7 +42,7 @@ func (app *Config) Authenticate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	payload := jsonResponce{
+	payload := jsonResponse{
 		Error:   false,
 		Message: fmt.Sprintf("Logged in user %s", user.Email),
 		Data:    user,

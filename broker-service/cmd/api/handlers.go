@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-type requestPayload struct {
+type RequestPayload struct {
 	Action string      `json:"action"`
 	Auth   AuthPayload `json:"auth,omitempty"`
 	Log    LogPayload  `json:"log,omitempty"`
@@ -24,7 +24,7 @@ type LogPayload struct {
 }
 
 func (app *Config) Broker(w http.ResponseWriter, r *http.Request) {
-	payload := jsonResponce{
+	payload := jsonResponse{
 		Error:   false,
 		Message: "Hit the broker",
 	}
@@ -33,7 +33,7 @@ func (app *Config) Broker(w http.ResponseWriter, r *http.Request) {
 }
 
 func (app *Config) HandleSubmission(w http.ResponseWriter, r *http.Request) {
-	var requestPayload requestPayload
+	var requestPayload RequestPayload
 
 	err := app.readJSON(w, r, &requestPayload)
 	if err != nil {
@@ -81,7 +81,7 @@ func (app *Config) logItem(w http.ResponseWriter, entry LogPayload) {
 		return
 	}
 
-	var payload jsonResponce
+	var payload jsonResponse
 	payload.Error = false
 	payload.Message = "Logged!"
 
@@ -118,7 +118,7 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 	}
 
 	// create a variable we'll read response.Body into
-	var jsonFromService jsonResponce
+	var jsonFromService jsonResponse
 
 	err = json.NewDecoder(response.Body).Decode(&jsonFromService)
 	if err != nil {
@@ -132,7 +132,7 @@ func (app *Config) authenticate(w http.ResponseWriter, a AuthPayload) {
 	}
 
 	// if we get here, we're good to go
-	var payload jsonResponce
+	var payload jsonResponse
 	payload.Error = false
 	payload.Message = "Authenticated!"
 	payload.Data = jsonFromService.Data
